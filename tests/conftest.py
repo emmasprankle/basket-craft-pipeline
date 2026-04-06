@@ -1,15 +1,8 @@
-import os
 import pytest
-from sqlalchemy import create_engine
-from dotenv import load_dotenv
-
-load_dotenv()
+from db import get_pg_engine
 
 @pytest.fixture(scope="session")
 def pg_engine():
-    engine = create_engine(
-        f"postgresql+psycopg2://{os.environ['PG_USER']}:{os.environ['PG_PASSWORD']}"
-        f"@{os.environ['PG_HOST']}:{os.environ['PG_PORT']}/{os.environ['PG_DATABASE']}"
-    )
+    engine = get_pg_engine()
     yield engine
     engine.dispose()
