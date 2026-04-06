@@ -10,13 +10,12 @@ def load_raw_tables(tables: dict[str, pd.DataFrame], pg_engine) -> None:
     """
     with pg_engine.begin() as conn:
         conn.execute(text("CREATE SCHEMA IF NOT EXISTS raw"))
-
-    for table_name, df in tables.items():
-        df.to_sql(
-            name=table_name,
-            con=pg_engine,
-            schema="raw",
-            if_exists="replace",
-            index=False,
-        )
-        print(f"  Loaded raw.{table_name}: {len(df)} rows")
+        for table_name, df in tables.items():
+            df.to_sql(
+                name=table_name,
+                con=conn,
+                schema="raw",
+                if_exists="replace",
+                index=False,
+            )
+            print(f"  Loaded raw.{table_name}: {len(df)} rows")
