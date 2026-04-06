@@ -13,4 +13,10 @@ def run_transform(pg_engine) -> None:
         count = conn.execute(
             text("SELECT COUNT(*) FROM analytics.monthly_sales_summary")
         ).scalar()
+
+    if count == 0:
+        raise RuntimeError(
+            "Transform produced 0 rows — check that raw.order_items and raw.products are populated"
+        )
+
     print(f"  Transformed analytics.monthly_sales_summary: {count} rows")

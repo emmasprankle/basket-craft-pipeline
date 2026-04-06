@@ -45,13 +45,15 @@ def _load_fixtures(pg_engine):
 
 
 @pytest.fixture(autouse=True)
-def clean_analytics_schema(pg_engine):
-    """Drop analytics schema before and after each test."""
+def clean_schemas(pg_engine):
+    """Drop raw and analytics schemas before and after each test for isolation."""
     with pg_engine.begin() as conn:
         conn.execute(text("DROP SCHEMA IF EXISTS analytics CASCADE"))
+        conn.execute(text("DROP SCHEMA IF EXISTS raw CASCADE"))
     yield
     with pg_engine.begin() as conn:
         conn.execute(text("DROP SCHEMA IF EXISTS analytics CASCADE"))
+        conn.execute(text("DROP SCHEMA IF EXISTS raw CASCADE"))
 
 
 def test_transform_creates_analytics_schema(pg_engine):
