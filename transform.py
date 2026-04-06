@@ -8,8 +8,6 @@ def run_transform(pg_engine) -> None:
     with pg_engine.begin() as conn:
         conn.execute(text("CREATE SCHEMA IF NOT EXISTS analytics"))
         conn.execute(text(sql))
-
-    with pg_engine.connect() as conn:
         count = conn.execute(
             text("SELECT COUNT(*) FROM analytics.monthly_sales_summary")
         ).scalar()
