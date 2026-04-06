@@ -135,10 +135,20 @@ basket-craft-pipeline/
 
 ---
 
+## Error Handling (In Scope)
+
+- Validate MySQL and PostgreSQL connections at startup; abort with a clear message if either is unreachable
+- Wrap each stage (`extract`, `load`, `transform`) in `try/except`; print stage name and error, exit with non-zero code on failure
+- Raw tables preserved on transform failure — pipeline is re-runnable from any stage
+
+## Testing (In Scope)
+
+- Unit tests for the transform logic using a small in-memory fixture loaded into a test PostgreSQL schema
+- Smoke test for `run_pipeline.py` end-to-end against the real databases (verify `analytics.monthly_sales_summary` has rows after a run)
+- Test framework: `pytest`
+
 ## Out of Scope
 
 - Scheduling / automation (manual trigger only)
 - Incremental / CDC loading
-- Data quality checks or row-count assertions
-- Unit tests (manual inspection of output table serves as verification)
 - Refund netting (gross revenue only)
