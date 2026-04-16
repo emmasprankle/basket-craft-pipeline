@@ -8,6 +8,7 @@
 ## Context
 
 The pipeline already has:
+
 - `extract.py` — reads `orders`, `order_items`, `products` from external MySQL
 - `load.py` — writes raw tables to PostgreSQL
 - `transform.py` + `sql/transform.sql` — builds `analytics.monthly_sales_summary`
@@ -27,11 +28,13 @@ MySQL is always an external database reached via environment variables. It is ne
 
 ## Files Changed
 
-| File | Change |
-|---|---|
-| `Dockerfile` | New — builds the pipeline image |
+
+| File                 | Change                                                             |
+| -------------------- | ------------------------------------------------------------------ |
+| `Dockerfile`         | New — builds the pipeline image                                    |
 | `docker-compose.yml` | Modified — adds healthcheck to `postgres`, adds `pipeline` service |
-| `.env.example` | New — documents all required environment variables |
+| `.env.example`       | New — documents all required environment variables                 |
+
 
 ---
 
@@ -133,3 +136,4 @@ One command starts Postgres, waits for it to be healthy, runs the full ELT pipel
 - Makefile targets
 - Scheduling / cron
 - MySQL containerization
+
