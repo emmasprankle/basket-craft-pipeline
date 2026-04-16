@@ -17,3 +17,6 @@ build/
 .claude/
 .superpowers/
 .worktrees/
+tests/
+pytest.ini
+docs/
