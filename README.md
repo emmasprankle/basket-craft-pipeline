@@ -1,15 +1,16 @@
 # Basket Craft ELT Pipeline
 
-An ELT pipeline that extracts order data from a MySQL source database, loads it into PostgreSQL, and transforms it into a monthly sales analytics table.
+An ELT pipeline that extracts data from a MySQL source database, loads it into PostgreSQL, and transforms it into a monthly sales analytics table. PostgreSQL is available both as a local Docker container and as an AWS RDS instance pre-loaded with the full Basket Craft dataset.
 
 ## What it does
 
 ```
-MySQL (source)
-  orders, order_items, products
+MySQL (source — 8 tables)
+  orders, order_items, order_item_refunds, products,
+  users, employees, website_sessions, website_pageviews
         ↓  extract + load
-PostgreSQL: raw schema
-  raw.orders / raw.order_items / raw.products
+PostgreSQL: raw schema  (Docker or AWS RDS)
+  raw.*  — all source tables loaded as-is
         ↓  transform (SQL)
 PostgreSQL: analytics schema
   analytics.monthly_sales_summary
@@ -20,7 +21,36 @@ PostgreSQL: analytics schema
     - avg_order_value
 ```
 
-The pipeline runs as a one-shot job: extract all rows from MySQL, load them into the `raw` schema (full replace), then build the analytics table from scratch.
+The pipeline runs as a one-shot job: extract rows from MySQL, load them into the `raw` schema (full replace), then build the analytics table from scratch.
+
+## AWS RDS Instance
+
+An RDS PostgreSQL instance is provisioned with the full raw dataset already loaded (~1.77M rows across all 8 tables):
+
+| Table | Rows |
+|---|---:|
+| `raw.website_pageviews` | 1,188,124 |
+| `raw.website_sessions` | 472,871 |
+| `raw.users` | 31,696 |
+| `raw.orders` | 32,313 |
+| `raw.order_items` | 40,025 |
+| `raw.order_item_refunds` | 1,731 |
+| `raw.employees` | 20 |
+| `raw.products` | 4 |
+| `analytics.monthly_sales_summary` | 94 |
+
+**Endpoint:** `basket-craft-db.c7mcisii27xx.us-west-1.rds.amazonaws.com`  
+**Port:** `5432` | **Database:** `basket_craft` | **Username:** `student`
+
+To run the pipeline against RDS, set these values in `.env`:
+```dotenv
+PG_HOST=basket-craft-db.c7mcisii27xx.us-west-1.rds.amazonaws.com
+PG_USER=student
+PG_PASSWORD=<password>
+PG_PORT=5432
+PG_DATABASE=basket_craft
+```
+Then run `python run_pipeline.py` directly (not via `docker compose`, which would spin up a local Postgres unnecessarily).
 
 ## Setup
 
@@ -45,7 +75,7 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Open `.env` and fill in the five `MYSQL_*` values with your source database credentials. The `PG_*` values are pre-filled for the Docker-managed PostgreSQL instance — leave them as-is.
+Open `.env` and fill in the five `MYSQL_*` values. The `PG_*` values are pre-filled for the local Docker PostgreSQL instance — leave them as-is unless targeting RDS.
 
 ```dotenv
 MYSQL_HOST=<your host>
@@ -54,7 +84,7 @@ MYSQL_USER=<your user>
 MYSQL_PASSWORD=<your password>
 MYSQL_DATABASE=<your database>
 
-# Leave these as-is for Docker
+# Pre-filled for Docker (change PG_HOST to RDS endpoint to target AWS)
 PG_USER=pipeline
 PG_PASSWORD=pipeline
 PG_HOST=postgres
@@ -64,7 +94,7 @@ PG_DATABASE=basket_craft_dw
 
 ## Running the pipeline
 
-### Via Docker (recommended)
+### Via Docker (recommended for local)
 
 ```bash
 docker compose down && docker compose up
@@ -77,21 +107,17 @@ pipeline-1  | === Basket Craft ELT Pipeline ===
 pipeline-1  | [1/4] Validating database connections...
 pipeline-1  |   Connections OK
 pipeline-1  | [2/4] Extracting from MySQL...
-pipeline-1  |   Extracted orders: N rows
-pipeline-1  |   Extracted order_items: N rows
-pipeline-1  |   Extracted products: N rows
 pipeline-1  | [3/4] Loading into raw schema (PostgreSQL)...
 pipeline-1  | [4/4] Transforming into analytics schema...
 pipeline-1  | === Pipeline complete ===
 pipeline-1 exited with code 0
 ```
 
-### Locally
+### Against AWS RDS
+
+Update `PG_*` values in `.env` to point at the RDS endpoint, then:
 
 ```bash
-# Start PostgreSQL (PG_HOST must be set to localhost in .env for local runs)
-docker compose up postgres -d
-
 python run_pipeline.py
 ```
 
